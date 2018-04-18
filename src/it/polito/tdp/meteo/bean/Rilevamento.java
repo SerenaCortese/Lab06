@@ -15,6 +15,7 @@ public class Rilevamento {
 		this.umidita = umidita;
 	}
 
+
 	public String getLocalita() {
 		return localita;
 	}

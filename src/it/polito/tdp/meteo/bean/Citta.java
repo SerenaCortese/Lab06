@@ -7,6 +7,8 @@ public class Citta {
 	private String nome;
 	private List<Rilevamento> rilevamenti;
 	private int counter = 0;
+	private double avgUmidita = 0.0;
+	private int costo = 0;
 	
 	public Citta(String nome) {
 		this.nome = nome;
@@ -16,7 +18,7 @@ public class Citta {
 		this.nome = nome;
 		this.rilevamenti = rilevamenti;
 	}
-
+	
 	public String getNome() {
 		return nome;
 	}
@@ -36,7 +38,7 @@ public class Citta {
 	public int getCounter() {
 		return counter;
 	}
-
+	
 	public void setCounter(int counter) {
 		this.counter = counter;
 	}
@@ -44,7 +46,24 @@ public class Citta {
 	public void increaseCounter() {
 		this.counter += 1;
 	}
+	
+	public void decreaseCounter() {
+		this.counter -= 1;
+	}
+	
+	public double getAvgUmidita() {
+		return avgUmidita;
+	}
 
+	public void setAvgUmidita(double avgUmidita) {
+		this.avgUmidita = avgUmidita;
+	}
+
+	public int getCosto(int step) {
+		return this.rilevamenti.get(step).getUmidita();
+	}
+
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

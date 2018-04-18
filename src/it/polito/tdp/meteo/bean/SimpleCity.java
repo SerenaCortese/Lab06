@@ -5,6 +5,7 @@ public class SimpleCity {
 	private String nome;
 	private int costo;
 	
+	
 	public SimpleCity(String nome) {
 		this.nome = nome;
 	}
