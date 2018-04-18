@@ -16,29 +16,28 @@ Bisogna trovare la sequenza di città da visitare
 Numero di città già inserite nella sequenza
 
 ### Soluzione Parziale
-* Parte iniziale della sequenza, già controllata
-* Scelte città per numero di giorni pari al livello
+* Parte iniziale della sequenza, già validata
+* Sequenza città per giorni = livello 
 
 ### Soluzione Completa
 Sequenza di città per 15 giorni che minimizza costi
 
 ### Validità soluzione parziale
-* Tutte le città devono esser visitate almeno una volta ==> contatoreCitta>0
-* Non si può stare più di 6 giorni in ogni città==> contatoreCitta<=6
-* Si deve stare almeno 3 giorni consecutivi in ogni città
+* Tutte le città devono esser visitate **almeno un giorno** ==> contatoreCitta>0
+* Non si può stare più di **6 giorni** in ogni città==> contatoreCitta<=6
+* Si deve stare almeno **3 giorni consecutivi** in ogni città
 
 ### Validità soluzione Completa
-* Deve contenere sequenza di 15 elementi ==> List<> sequenza....sequenza.size==15
-* costoSoluzione deve essere il minore tra i costiParziali
+* Deve contenere sequenza di **15 elementi** ==> List<> sequenza....sequenza.size==15
+* **costoSoluzione** deve essere il minore tra i costiParziali
 
 ### Generazione soluzione di livello +1 dal livello corrente
 Partendo dalla soluzione (parziale) di livello corrente, bisogna:
 * aggiungere alla parziale una città 
   * nuova se si è sostati già 6 giorni nella precedente
   * altrimenti la stessa
-* testare se conviene in termini di costo e se rispetta i controlli di parziale
-* se ok, ricorsione, *altrimenti* la rimuovo
-* se ok, entra nella parziale, *altrimenti* deve esser rimossa
+* controllare se (valida) rispetta i controlli di parziale
+* se ok, **ricorsione al livello+1**, *altrimenti* la rimuovo
 
 ### Struttura dati per memorizzare soluzione
 * Lista di città (sia per parziale che per completa)
