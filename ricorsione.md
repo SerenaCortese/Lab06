@@ -9,6 +9,7 @@ Dati
 * 3 città 
 * costi in umidità ==> mi serve sapere l'umidità
 * nei primi 15 giorni del mese==> mi serve sapere il mese
+
 Bisogna trovare la sequenza di città da visitare
 
 ### Livello
