@@ -20,7 +20,7 @@ public class MeteoController {
 	private URL location;
 
 	@FXML
-	private ChoiceBox<?> boxMese;
+	private ChoiceBox<Integer> boxMese;
 
 	@FXML
 	private Button btnCalcola;
@@ -33,12 +33,24 @@ public class MeteoController {
 
 	@FXML
 	void doCalcolaSequenza(ActionEvent event) {
-
+		Integer mese = boxMese.getValue();
+		if(mese == null) {
+			txtResult.setText("ERRORE: scegli un mese!");
+			return;
+		}
+		String sequenza = model.trovaSequenza(mese);
+		txtResult.setText(sequenza);
 	}
 
 	@FXML
 	void doCalcolaUmidita(ActionEvent event) {
-
+		Integer mese = boxMese.getValue();
+		if(mese == null) {
+			txtResult.setText("ERRORE: scegli un mese!");
+			return;
+		}
+		String umiditaMedia = model.getUmiditaMedia(mese);
+		txtResult.setText(umiditaMedia);
 	}
 
 	@FXML
@@ -51,6 +63,7 @@ public class MeteoController {
 	
 	void setModel(Model model) {
 		this.model = model;
+		boxMese.getItems().addAll(1,2,3,4,5,6,7,8,9,10,11,12);
 	}
 
 }
