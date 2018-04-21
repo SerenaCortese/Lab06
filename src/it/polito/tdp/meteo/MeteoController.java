@@ -11,7 +11,7 @@ import javafx.scene.control.TextArea;
 
 public class MeteoController {
 	
-	Model model;
+	private Model model;
 
 	@FXML
 	private ResourceBundle resources;
@@ -33,6 +33,7 @@ public class MeteoController {
 
 	@FXML
 	void doCalcolaSequenza(ActionEvent event) {
+		txtResult.clear();
 		Integer mese = boxMese.getValue();
 		if(mese == null) {
 			txtResult.setText("ERRORE: scegli un mese!");
@@ -44,6 +45,7 @@ public class MeteoController {
 
 	@FXML
 	void doCalcolaUmidita(ActionEvent event) {
+		txtResult.clear();
 		Integer mese = boxMese.getValue();
 		if(mese == null) {
 			txtResult.setText("ERRORE: scegli un mese!");
@@ -63,7 +65,10 @@ public class MeteoController {
 	
 	void setModel(Model model) {
 		this.model = model;
-		boxMese.getItems().addAll(1,2,3,4,5,6,7,8,9,10,11,12);
+		this.boxMese.getItems().add(null);
+		for(int i=1; i<=12; i++) {
+			boxMese.getItems().add(i);
+		}
 	}
 
 }
