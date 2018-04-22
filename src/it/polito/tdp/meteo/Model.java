@@ -18,12 +18,10 @@ public class Model {
 	private final static int NUMERO_GIORNI_CITTA_MAX = 6;
 	private final static int NUMERO_GIORNI_TOTALI = 15;
 	
-	private MeteoDAO meteoDao;
-	private String soluzione;
-	//private int giorniTotali = 0;
+	private MeteoDAO meteoDao = null;
 	private Double bestPunteggio;
-	private List<Citta> soluzioneArray;
-	private List<Citta> cittaPresenti;
+	private List<SimpleCity> soluzione = null;
+	private List<Citta> cittaPresenti = null;
 	
 	public Model() {
 		meteoDao = new MeteoDAO();
@@ -36,138 +34,126 @@ public class Model {
 	}
 
 	public String getUmiditaMedia(int mese) {
-		String s = "";
+		StringBuilder s = new StringBuilder();
 		for(Citta c : cittaPresenti) {
 			c.setAvgUmidita(meteoDao.getAvgRilevamentiLocalitaMese(mese, c.getNome()));
-			s += c.getNome()+" "+c.getAvgUmidita()+"\n";
+			s.append("Località: "+ c.getNome()+"\tUmidità media: "+c.getAvgUmidita()+"\n");
 		}
-		return s;
+		return s.toString();
 	}
 	
 	public String trovaSequenza(int mese) {
 		//inizializzo qui soluzione perché ogni volta che richiamo questa funzione voglio dimenticare la sol precedente
-		soluzione = "";
-		bestPunteggio = 1000000000000000000000000.9;
-		soluzioneArray = new ArrayList<Citta>();
+		bestPunteggio = Double.MAX_VALUE;
+		soluzione = null;
 		
 		for(Citta c: cittaPresenti) {
+			c.setCounter(0);
 			c.setRilevamenti(meteoDao.getAllRilevamentiLocalitaMese(mese, c.getNome()));
 		}
 		
 		//richiamo funzione ricorsiva
-		int step = 0;
-		List<Citta> parziale = new ArrayList<Citta>();
-		recursive(step,parziale,mese);
+		List<SimpleCity> parziale = new ArrayList<SimpleCity>();
+		recursive(0,parziale);
 		
-		for(Citta c : soluzioneArray) {
-			soluzione += c.toString()+ "\n";
+		if (soluzione != null) {
+			System.out.println(String.format("Soluzione migliore per il mese di %s: \n", mese));
+			System.out.println(String.format("DEBUG score: %f", this.punteggioSoluzione(soluzione)));
+			return soluzione.toString();
 		}
-		return soluzione;
+
+		return "Nessuna soluzione trovata";
+				
 	}
 
-	private void recursive(int step, List<Citta> parziale, int mese) {
-		//Debug
-		System.out.println(parziale);
+	private void recursive(int step, List<SimpleCity> parziale) {
 		
 		//condizione di terminazione
-//		if(step > Model.NUMERO_GIORNI_TOTALI) {
+//		if(this.controllaParziale(parziale) == false) {
 //			return;
 //		}
-//		
-		//condizione di terminazione
-		if(this.controllaParziale(parziale) == false) {
-			return;
-		}
 		//se parziale ha stesso livello devo vedere se è migliore della precedente
 		if(step >= Model.NUMERO_GIORNI_TOTALI) {
-			if(this.punteggioSoluzione(parziale, step)>= bestPunteggio) {
-				return;
+			
+			if(this.punteggioSoluzione(parziale)< bestPunteggio) {
+				soluzione = new ArrayList<SimpleCity>(parziale);
+				bestPunteggio = this.punteggioSoluzione(parziale);
 			}
-			soluzioneArray = new ArrayList<Citta>(parziale);
-			bestPunteggio = punteggioSoluzione(parziale,step);
+			
 			return;
-//			
-//			boolean visitate = true;
-//			for(Citta c : parziale) {//controllo che passi in tutte le città almeno un giorno
-//				if(c.getCounter()==0) {
-//					visitate = false;
-//				}
-//			}
-//			if(punteggioSoluzione(parziale,step)< bestPunteggio && visitate == true && this.controllaParziale(parziale)) {
-//				//salvo soluzione parziale creando una deep copy
-//				soluzioneArray = new ArrayList<Citta>(parziale);
-//				bestPunteggio = punteggioSoluzione(parziale,step);
-//				return;
-//				}
-			}
+		}
+		
 		//Generazione di una nuova soluzione parziale
+		
 		for(Citta c : cittaPresenti) {
-			if(diversaCitta(c,parziale)) {
-				for(int i=0; i< NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN;i++) {
-					parziale.add(c);
-					c.increaseCounter();
-				}
-				this.recursive(step+3,parziale, mese);
-				for(int i=0; i< NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN;i++) {
-					parziale.remove(parziale.size()-1);
-					c.decreaseCounter();
-				}
+			SimpleCity sc = new SimpleCity(c.getNome(), c.getRilevamenti().get(step).getUmidita() );
+			parziale.add(sc);
+			c.increaseCounter();
+			if(this.controllaParziale(parziale)) {
+				recursive(step+1,parziale);
 			}
-			else {
-				parziale.add(c);
-				c.increaseCounter();
-				this.recursive(step+1,parziale, mese);
-				parziale.remove(c);
-				c.decreaseCounter();
-			}
+			parziale.remove(step);
+			c.decreaseCounter();
+			
 		}
-		
-//		for(Citta c : cittaPresenti) {
-//			parziale.add(c);
-//			c.increaseCounter();
-//			if(this.controllaParziale(parziale)) {
-//				recursive(step+1,parziale,mese);
-//			}
-//			parziale.remove(c);
-//			c.decreaseCounter();
-//			
-//		}
 	}
 
-	private boolean diversaCitta(Citta c, List<Citta> parziale) {
-		if(parziale.size() == 0) {
-			return true;
-		}
-		return !c.getNome().equals(parziale.get(parziale.size()-1).getNome());
-	}
-
-	private Double punteggioSoluzione(List<Citta> soluzioneCandidata, int step) {
+	private Double punteggioSoluzione(List<SimpleCity> soluzioneCandidata) {
 		
+		// Controllo che la lista non sia nulla o vuota
+		if (soluzioneCandidata == null || soluzioneCandidata.size() == 0)					
+			return Double.MAX_VALUE;
+		
+		// Controllo che la soluzione contenga tutte le citta'
+		for (Citta c : cittaPresenti) {
+			if (!soluzioneCandidata.contains(new SimpleCity(c.getNome())))
+				return Double.MAX_VALUE;
+		}
+		
+		SimpleCity previous = soluzioneCandidata.get(0);
 		double score = 0.0;
-		for(Citta c : soluzioneCandidata) {
-			score += c.getCosto(step);
-			if(this.diversaCitta(c, soluzioneCandidata)) {
+
+		for (SimpleCity sc : soluzioneCandidata) {
+			if (!previous.equals(sc)) {
 				score += Model.COST;
 			}
+			previous = sc;
+			score += sc.getCosto();
 		}
-		
 		return score;
 	}
 
-	private boolean controllaParziale(List<Citta> parziale) {
+	private boolean controllaParziale(List<SimpleCity> parziale) {
+		
+		// Se e' nulla non e' valida
+		if (parziale == null)
+			return false;
+
+		// Se la soluzione parziale e' vuota, e' valida
+		if (parziale.size() == 0)
+			return true;
 		
 		//controllo non stia più di 6 giorni in ogni città
-		for(Citta c : parziale) {
+		for(Citta c : cittaPresenti) {
 			if(c.getCounter()> Model.NUMERO_GIORNI_CITTA_MAX) {
 				return false;
 			}
 		}
 		
 		//controllo che sosti almeno 3 giorni in ogni citta
-		for(int i = 0; parziale.size()>=3 && i<parziale.size()-2;i++) {
-			if(!parziale.get(i).getNome().equals(parziale.get(i+1).getNome()) 
-				|| !parziale.get(i).getNome().equals(parziale.get(i+2).getNome())) {
-				return false;
+
+		SimpleCity previous = parziale.get(0);
+		int counter = 0;
+
+		for (SimpleCity sc : parziale) {
+			if (!previous.equals(sc)) {
+				if (counter < NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN) {
+					return false;
+				}
+				counter = 1;
+				previous = sc;
+			} else {
+				counter++;
 			}
 		}
 

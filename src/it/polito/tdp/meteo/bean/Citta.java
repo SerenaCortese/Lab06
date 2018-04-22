@@ -8,7 +8,6 @@ public class Citta {
 	private List<Rilevamento> rilevamenti;
 	private int counter = 0;
 	private double avgUmidita = 0.0;
-	private int costo = 0;
 	
 	public Citta(String nome) {
 		this.nome = nome;
@@ -58,11 +57,6 @@ public class Citta {
 	public void setAvgUmidita(double avgUmidita) {
 		this.avgUmidita = avgUmidita;
 	}
-
-	public int getCosto(int step) {
-		return this.rilevamenti.get(step).getUmidita();
-	}
-
 	
 	@Override
 	public int hashCode() {
