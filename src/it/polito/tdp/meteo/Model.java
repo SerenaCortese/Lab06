@@ -1,14 +1,14 @@
 package it.polito.tdp.meteo;
 
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
 import it.polito.tdp.meteo.bean.Citta;
+import it.polito.tdp.meteo.bean.CittaUmidita;
 import it.polito.tdp.meteo.bean.Rilevamento;
 import it.polito.tdp.meteo.bean.SimpleCity;
 import it.polito.tdp.meteo.db.MeteoDAO;
-
-
 
 
 public class Model {
@@ -18,146 +18,124 @@ public class Model {
 	private final static int NUMERO_GIORNI_CITTA_MAX = 6;
 	private final static int NUMERO_GIORNI_TOTALI = 15;
 	
-	private MeteoDAO meteoDao = null;
-	private Double bestPunteggio;
-	private List<SimpleCity> soluzione = null;
-	private List<Citta> cittaPresenti = null;
+	private List<Citta> leCitta;
+	private List<Citta> best;
 	
 	public Model() {
-		meteoDao = new MeteoDAO();
-		cittaPresenti = new ArrayList<Citta>();
-		for(Rilevamento r : meteoDao.getAllRilevamenti()) {
-			Citta c = new Citta(r.getLocalita());
-			if(!cittaPresenti.contains(c))
-				cittaPresenti.add(c);
-		}
+		MeteoDAO dao = new MeteoDAO();
+		this.leCitta = dao.getAllCitta();
 	}
 
-	public String getUmiditaMedia(int mese) {
-		StringBuilder s = new StringBuilder();
-		for(Citta c : cittaPresenti) {
-			c.setAvgUmidita(meteoDao.getAvgRilevamentiLocalitaMese(mese, c.getNome()));
-			s.append("Località: "+ c.getNome()+"\tUmidità media: "+c.getAvgUmidita()+"\n");
-		}
-		return s.toString();
+	
+	public List<Citta> getLeCitta() {
+		return leCitta;
+	}
+
+
+	public Double getUmiditaMedia(Month mese, Citta citta) {
+		MeteoDAO dao = new MeteoDAO();
+		return dao.getUmiditaMedia(mese, citta);
 	}
 	
-	public String trovaSequenza(int mese) {
-		//inizializzo qui soluzione perché ogni volta che richiamo questa funzione voglio dimenticare la sol precedente
-		bestPunteggio = Double.MAX_VALUE;
-		soluzione = null;
+	public List<CittaUmidita> getUmiditaMedia(int mese){
+		return null;
+	}
+	/**
+	 * Funzione che chiama ricorsione, "trovaSoluzione" nel mio branch
+	 * @param mese
+	 * @return
+	 */
+	public List<Citta> calcolaSequenza(Month mese){
+		List<Citta> parziale = new ArrayList<>();
+		//non LInkedList perché devo raggiungere il terzo elemento, il quarto ecc
+		this.best=null;
+		//carico dentro ciascuna delle città la lista dei rilevamenti nel mese considerato
+		//e le memorizzo con citta.setRilevamenti(dao.getRilevalementiCittaMese(citta,mese))
 		
-		for(Citta c: cittaPresenti) {
-			c.setCounter(0);
-			c.setRilevamenti(meteoDao.getAllRilevamentiLocalitaMese(mese, c.getNome()));
-		}
+		cerca(parziale,0);
+		return best;
+	}
+	
+	/**
+	 * é la funzione ricorsiva, "recursive" nel mio branch
+	 * @param parziale
+	 * @param livello
+	 */
+	public void cerca(List<Citta> parziale, int livello) {
 		
-		//richiamo funzione ricorsiva
-		List<SimpleCity> parziale = new ArrayList<SimpleCity>();
-		recursive(0,parziale);
-		
-		if (soluzione != null) {
-			System.out.println(String.format("Soluzione migliore per il mese di %s: \n", mese));
-			System.out.println(String.format("DEBUG score: %f", this.punteggioSoluzione(soluzione)));
-			return soluzione.toString();
-		}
-
-		return "Nessuna soluzione trovata";
+		if(livello == NUMERO_GIORNI_TOTALI) {
+			//condizione terminale
+			Double costo = calcolaCosto(parziale);
+			if(best==null || costo < calcolaCosto(best)) {
+				best = new ArrayList<>(parziale);
+			}
+			
+			System.out.println(parziale);
+			
+		}else {
+			
+			//caso intermedio trovo nuova soluzione
+			for(Citta prova: leCitta) {
 				
-	}
-
-	private void recursive(int step, List<SimpleCity> parziale) {
-		
-		//condizione di terminazione
-//		if(this.controllaParziale(parziale) == false) {
-//			return;
-//		}
-		//se parziale ha stesso livello devo vedere se è migliore della precedente
-		if(step >= Model.NUMERO_GIORNI_TOTALI) {
-			
-			if(this.punteggioSoluzione(parziale)< bestPunteggio) {
-				soluzione = new ArrayList<SimpleCity>(parziale);
-				bestPunteggio = this.punteggioSoluzione(parziale);
+				if(aggiuntaValida(prova,parziale)) {
+					
+					parziale.add(prova);
+					cerca(parziale, livello+1);
+					parziale.remove(parziale.size()-1);
+					
+				}
 			}
-			
-			return;
-		}
-		
-		//Generazione di una nuova soluzione parziale
-		
-		for(Citta c : cittaPresenti) {
-			SimpleCity sc = new SimpleCity(c.getNome(), c.getRilevamenti().get(step).getUmidita() );
-			parziale.add(sc);
-			c.increaseCounter();
-			if(this.controllaParziale(parziale)) {
-				recursive(step+1,parziale);
-			}
-			parziale.remove(step);
-			c.decreaseCounter();
-			
 		}
 	}
-
-	private Double punteggioSoluzione(List<SimpleCity> soluzioneCandidata) {
+	/**
+	 * funzione punteggioSoluzione nel mio branch
+	 * @param parziale
+	 * @return
+	 */
+	private Double calcolaCosto(List<Citta> parziale) {
+		//sommatoria di tutte le umidità in ciascuna città considerando il rilevamento del giorno giusto
+		//SOMMA parziale.get(giorno-1).getRilevamenti(giorno-1)
 		
-		// Controllo che la lista non sia nulla o vuota
-		if (soluzioneCandidata == null || soluzioneCandidata.size() == 0)					
-			return Double.MAX_VALUE;
+		//a cui sommo 100* numero di volte in cui cambio città
 		
-		// Controllo che la soluzione contenga tutte le citta'
-		for (Citta c : cittaPresenti) {
-			if (!soluzioneCandidata.contains(new SimpleCity(c.getNome())))
-				return Double.MAX_VALUE;
-		}
-		
-		SimpleCity previous = soluzioneCandidata.get(0);
-		double score = 0.0;
-
-		for (SimpleCity sc : soluzioneCandidata) {
-			if (!previous.equals(sc)) {
-				score += Model.COST;
-			}
-			previous = sc;
-			score += sc.getCosto();
-		}
-		return score;
+		return null;
 	}
 
-	private boolean controllaParziale(List<SimpleCity> parziale) {
+	/**
+	 * funzione controllaParziale nel mio branch
+	 * @param prova
+	 * @param parziale
+	 * @return
+	 */
+	private boolean aggiuntaValida(Citta prova, List<Citta> parziale) {
 		
-		// Se e' nulla non e' valida
-		if (parziale == null)
+		//verifica giorni massimi
+		int conta = 0;
+		for(Citta precedente: parziale)  //guardo quante volte compare la città che sto per aggiungere
+			if(precedente.equals(prova))
+				conta++;
+		if(conta>=NUMERO_GIORNI_CITTA_MAX)
 			return false;
-
-		// Se la soluzione parziale e' vuota, e' valida
-		if (parziale.size() == 0)
+		
+		
+		//verifica giorni minimi: 
+		
+		if(parziale.size()==0) //primo giorno
+			return true;
+		if(parziale.size()==1 || parziale.size()==2) { //secondo o terzo giorno non posso cambiare
+			//la prova deve essere uguale all'ultima città vista
+			return parziale.get(parziale.size()-1).equals(prova);
+		}
+		if(parziale.get(parziale.size()-1).equals(prova))//giorni successivi, posso SEMPRE rimanere
 			return true;
 		
-		//controllo non stia più di 6 giorni in ogni città
-		for(Citta c : cittaPresenti) {
-			if(c.getCounter()> Model.NUMERO_GIORNI_CITTA_MAX) {
-				return false;
-			}
-		}
+		//voglio cambiare citta: posso farlo solo se in quella precedente ci son stato almeno 3 giorni
+		if(parziale.get(parziale.size()-1).equals(parziale.get(parziale.size()-2)) &&
+				parziale.get(parziale.size()-2).equals(parziale.get(parziale.size()-3)))
+			return true;
 		
-		//controllo che sosti almeno 3 giorni in ogni citta
-
-		SimpleCity previous = parziale.get(0);
-		int counter = 0;
-
-		for (SimpleCity sc : parziale) {
-			if (!previous.equals(sc)) {
-				if (counter < NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN) {
-					return false;
-				}
-				counter = 1;
-				previous = sc;
-			} else {
-				counter++;
-			}
-		}
-
-		return true;
+		return false;
 	}
 
+	
 }

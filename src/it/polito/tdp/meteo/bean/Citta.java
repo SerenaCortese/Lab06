@@ -7,7 +7,6 @@ public class Citta {
 	private String nome;
 	private List<Rilevamento> rilevamenti;
 	private int counter = 0;
-	private double avgUmidita = 0.0;
 	
 	public Citta(String nome) {
 		this.nome = nome;
@@ -50,15 +49,7 @@ public class Citta {
 		this.counter -= 1;
 	}
 	
-	public double getAvgUmidita() {
-		return avgUmidita;
-	}
-
-	public void setAvgUmidita(double avgUmidita) {
-		this.avgUmidita = avgUmidita;
-	}
-	
-	@Override
+		@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

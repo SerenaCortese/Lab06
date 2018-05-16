@@ -21,17 +21,17 @@ public class TestMeteoDAO {
 		System.out.println("\nLivelli di umidità a Genova nel mese di Gennaio: (%)");
 		System.out.println(dao.getAllRilevamentiLocalitaMese(1, "Genova"));
 		System.out.println("\nUmidità media rilevata nel mese di Marzo a Genova: (%)");
-		System.out.println(dao.getAvgRilevamentiLocalitaMese(3, "Genova"));
+//		System.out.println(dao.getAvgRilevamentiLocalitaMese(3, "Genova"));
 		
 		System.out.println("\nLivelli di umidità a Milano nel mese di Maggio: (%)");
 		System.out.println(dao.getAllRilevamentiLocalitaMese(5, "Milano"));
 		System.out.println("\nUmidità media rilevata nel mese di Maggio a Milano: (%)");
-		System.out.println(dao.getAvgRilevamentiLocalitaMese(5, "Milano"));
+//		System.out.println(dao.getAvgRilevamentiLocalitaMese(5, "Milano"));
 		
 		System.out.println("\nLivelli di umidità a Torino nel mese di Maggio: (%)");
 		System.out.println(dao.getAllRilevamentiLocalitaMese(5, "Torino"));
 		System.out.println("\nUmidità media rilevata nel mese di Maggio a Torino: (%)");
-		System.out.println(dao.getAvgRilevamentiLocalitaMese(5, "Torino"));
+//		System.out.println(dao.getAvgRilevamentiLocalitaMese(5, "Torino"));
 		
 	}
 

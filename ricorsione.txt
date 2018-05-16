@@ -1,0 +1,30 @@
+Impostazione della ricorsione:
+
+- Soluzione: Sequenza(List) di 15 città
+[Torino,Milano,Torino,Torino,.....]
+in cui gli elementi della lista rappresentano la città visitata 
+in ciascuno dei primi 15 giorni del mese
+purché rispetti le regole di permanenza minima e massima
+
+- Soluzione parziale: sequenza di <=15 città
+- Soluzione completa: sequenza completa di 15 elementi
+- Livello della ricorsione: un giorno del calendario
+
+- Condizione terminale : livello==15
+
+- Come generare nuove soluzioni?
+	- provo ad aggiungere tutte leCitta
+	-purchè rispettino i vincoli
+		- la città che sto aggiungendo non sia la settima complessiva
+		(posso aggiungere Torino come 7 solo se non son stata già 6 giorni a Torino)
+		N.B. se rispetto questo vincolo automaticamente rispetto il vincolo di vistare tutte le città almeno una volta
+		perché 6+6=12 quindi gli altri 3 giorni deve per forza visitare l'ultima città rimasta.
+		In caso, questo vincolo andrebbe solo quando controllo la soluzione.
+		- se sto cambiando città, in quella precedente devo esserci rimasto >= 3 giorni
+		OCCHIO NON DEVO STARE 3 GIORNI IN OGNI CITTA
+
+- Cosa fare quando trovo soluzione completa?
+	- calcolo costo relativo a questa soluzione(somma di umidità + 100 per numero di spostamenti)
+	- confronta questo costo con quello della soluzione migliore trovata finora
+		- se è minore, salva questa soluzione come la migliore
+	-in ogni caso, continua ricerca

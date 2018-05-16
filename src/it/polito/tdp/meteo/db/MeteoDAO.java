@@ -4,9 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.polito.tdp.meteo.bean.Citta;
 import it.polito.tdp.meteo.bean.Rilevamento;
 
 public class MeteoDAO {
@@ -38,27 +40,22 @@ public class MeteoDAO {
 			throw new RuntimeException(e);
 		}
 	}
-
-	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
-		final String sql = "SELECT Data, Umidita FROM situazione WHERE localita = ? AND month(data)= ?";
-
-		List<Rilevamento> rilevamenti = new ArrayList<Rilevamento>();
-
+	
+	public List<Citta> getAllCitta(){
+		String sql = "SELECT DISTINCT localita FROM situazione ORDER BY localita";
+		List<Citta> result = new ArrayList<Citta>();
+		
 		try {
 			Connection conn = DBConnect.getInstance().getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setString(1, localita);
-			st.setInt(2, mese);
 			ResultSet rs = st.executeQuery();
-
-			while (rs.next()) {
-
-				Rilevamento r = new Rilevamento(localita, rs.getDate("Data"), rs.getInt("Umidita"));
-				rilevamenti.add(r);
+			
+			while(rs.next()) {
+				result.add(new Citta(rs.getString("localita")));
 			}
-
+			
 			conn.close();
-			return rilevamenti;
+			return result;
 
 		} catch (SQLException e) {
 
@@ -68,30 +65,42 @@ public class MeteoDAO {
 
 	}
 
-	public Double getAvgRilevamentiLocalitaMese(int mese, String localita) {
-		final String sql = "SELECT avg(umidita) FROM situazione WHERE localita = ? AND month(data)= ?";
-		double media= 0;
+	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
+		
+		return null;
+	}
+
+	public Double getUmiditaMedia( Month mese, Citta citta) {
+		final String sql = "SELECT AVG(umidita) AS U FROM situazione WHERE localita = ? AND MONTH(data)= ?";
+		
 		
 		try {
 			Connection conn = DBConnect.getInstance().getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setString(1, localita);
-			st.setInt(2, mese);
+			
+			st.setString(1, citta.getNome());
+			st.setInt(2, mese.getValue()); //avessi usato il Calendar avrei dovuto mettere +1 perché vanno da 0 a 11 i mesi lì
+			
 			ResultSet rs = st.executeQuery();
 			
-			while(rs.next()) {
-				media = rs.getDouble("avg(umidita)");
-			}
-			
+			rs.next(); //posiziono cursore sulla rima riga
+			Double u = rs.getDouble("U");
+
 			conn.close();
-			return media;
+			
+			return u;
 
 		} catch (SQLException e) {
 
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+		
+	}
+	
+	public Double getAvgRilevamentiLocalitaMese(int mese, String localita) {
 
+		return 0.0;
 	}
 
 }
